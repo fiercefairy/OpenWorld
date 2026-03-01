@@ -33,8 +33,10 @@ io.on('connection', (socket) => {
 
   players.set(socket.id, {
     id: socket.id,
-    position: { x: 0, y: 0, z: 0 },
-    rotation: { y: 0 }
+    position: { x: 0, y: 2, z: 0 },
+    rotation: { y: 0 },
+    state: 'GROUNDED',
+    velocity: { x: 0, y: 0, z: 0 },
   });
 
   // Send current players to new connection
@@ -46,8 +48,10 @@ io.on('connection', (socket) => {
   socket.on('player:move', (data) => {
     const player = players.get(socket.id);
     if (player) {
-      player.position = data.position;
-      player.rotation = data.rotation;
+      if (data.position) player.position = data.position;
+      if (data.rotation) player.rotation = data.rotation;
+      if (data.state) player.state = data.state;
+      if (data.velocity) player.velocity = data.velocity;
       socket.broadcast.emit('player:moved', { id: socket.id, ...data });
     }
   });

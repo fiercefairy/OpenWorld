@@ -1,62 +1,80 @@
-import { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import { useRef } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
+import * as THREE from 'three'
+import { useGameContext } from '../contexts/GameContext'
+import { LAYER_CONFIG } from '../systems/reality'
 
 export default function Sky() {
-  const sunRef = useRef();
-  const lightRef = useRef();
+  const sunRef = useRef()
+  const lightRef = useRef()
+  const ambientRef = useRef()
+  const hemiRef = useRef()
+  const skyRef = useRef()
+  const { activeLayer, playerPosition } = useGameContext()
+  const config = LAYER_CONFIG[activeLayer]
 
   useFrame(({ clock }) => {
-    const t = clock.elapsedTime * 0.05;
-    const sunX = Math.cos(t) * 200;
-    const sunY = Math.sin(t) * 200 + 50;
-    const sunZ = -100;
+    const t = clock.elapsedTime * 0.05
+    const sunX = Math.cos(t) * 200
+    const sunY = Math.sin(t) * 200 + 50
+    const sunZ = -100
 
     if (sunRef.current) {
-      sunRef.current.position.set(sunX, Math.max(sunY, 10), sunZ);
+      sunRef.current.position.set(sunX, Math.max(sunY, 10), sunZ)
+      sunRef.current.material.color.set(config.sunSphere)
     }
     if (lightRef.current) {
-      lightRef.current.position.set(sunX, Math.max(sunY, 30), sunZ);
+      lightRef.current.position.set(sunX, Math.max(sunY, 30), sunZ)
+      lightRef.current.intensity = config.sky.sunIntensity
+      lightRef.current.color.set(config.sky.sunColor)
+
+      // Shadow frustum follows player
+      const pos = playerPosition.current
+      const cam = lightRef.current.shadow.camera
+      cam.left = pos.x - 40
+      cam.right = pos.x + 40
+      cam.top = pos.z + 40
+      cam.bottom = pos.z - 40
+      cam.updateProjectionMatrix()
     }
-  });
+    if (skyRef.current) {
+      skyRef.current.material.color.set(config.skybox)
+    }
+  })
 
   return (
     <>
-      {/* Ambient light for overall illumination */}
-      <ambientLight intensity={0.4} color="#87ceeb" />
+      <ambientLight ref={ambientRef} intensity={config.ambient.intensity} color={config.ambient.color} />
 
-      {/* Directional sunlight */}
       <directionalLight
         ref={lightRef}
         position={[100, 150, -100]}
-        intensity={1.2}
-        color="#fff5e6"
+        intensity={config.sky.sunIntensity}
+        color={config.sky.sunColor}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
         shadow-camera-far={500}
-        shadow-camera-left={-100}
-        shadow-camera-right={100}
-        shadow-camera-top={100}
-        shadow-camera-bottom={-100}
+        shadow-camera-left={-40}
+        shadow-camera-right={40}
+        shadow-camera-top={40}
+        shadow-camera-bottom={-40}
       />
 
-      {/* Hemisphere light for sky/ground ambient */}
       <hemisphereLight
-        args={['#87ceeb', '#4a8c3f', 0.3]}
+        ref={hemiRef}
+        args={[config.hemisphere.sky, config.hemisphere.ground, config.hemisphere.intensity]}
       />
 
-      {/* Sun sphere */}
       <mesh ref={sunRef} position={[100, 150, -100]}>
         <sphereGeometry args={[8, 16, 16]} />
-        <meshBasicMaterial color="#fff5cc" />
+        <meshBasicMaterial color={config.sunSphere} />
       </mesh>
 
-      {/* Skybox - large sphere with sky color */}
-      <mesh>
+      <mesh ref={skyRef}>
         <sphereGeometry args={[500, 32, 32]} />
-        <meshBasicMaterial color="#5b9bd5" side={THREE.BackSide} />
+        <meshBasicMaterial color={config.skybox} side={THREE.BackSide} />
       </mesh>
     </>
-  );
+  )
 }
