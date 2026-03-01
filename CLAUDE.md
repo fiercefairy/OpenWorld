@@ -20,23 +20,26 @@ pm2 start ecosystem.config.cjs
 
 ## Architecture
 
-OpenWorld is a monorepo with Express.js server (port 5570) and React/Vite client (port 5571). PM2 manages app lifecycles.
+OpenWorld is a Three.js open world game with an Express.js server (port 5570) and React/Vite client (port 5571). PM2 manages app lifecycles.
 
 ### Server (`server/`)
-- **index.js**: Express server with Socket.IO and AI toolkit integration
+- **index.js**: Express server with Socket.IO for multiplayer game state
 
 ### Client (`client/src/`)
-- **App.jsx**: Main component with routing and collapsible nav
+- **App.jsx**: Main game canvas with Three.js scene
 - **main.jsx**: React entry point
+- **components/Terrain.jsx**: Procedural terrain with heightmap
+- **components/Player.jsx**: Third-person player controller (WASD + mouse look)
+- **components/Trees.jsx**: Procedurally placed trees and rocks
+- **components/Water.jsx**: Water plane
+- **components/Sky.jsx**: Sky dome, sun, and lighting
+- **components/HUD.jsx**: Game overlay UI (crosshair, controls help)
 
-### AI Provider Integration
-
-This project includes `portos-ai-toolkit` for AI provider management. The server exposes:
-- `GET/POST /api/providers` - Manage AI providers (CLI or API-based)
-- `GET/POST /api/runs` - Execute and track AI runs
-- `GET/POST /api/prompts` - Manage prompt templates
-
-Provider data is stored in `./data/providers.json`.
+### Tech Stack
+- **Three.js** via `@react-three/fiber` and `@react-three/drei`
+- **React 18** for UI composition
+- **Socket.IO** for multiplayer events
+- **Tailwind CSS** for HUD styling
 
 ## Code Conventions
 

@@ -1,65 +1,38 @@
-import { Routes, Route, Link } from 'react-router-dom';
-import { Menu, X, Home, Brain, Info } from 'lucide-react';
-import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import AIProviders from './pages/AIProviders';
+import { Canvas } from '@react-three/fiber';
+import { Suspense } from 'react';
+import Terrain from './components/Terrain';
+import Water from './components/Water';
+import Trees from './components/Trees';
+import Player from './components/Player';
+import Sky from './components/Sky';
+import HUD from './components/HUD';
 
-function HomePage() {
+function LoadingScreen() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Welcome to OpenWorld</h1>
-      <p className="text-gray-400">Built with PortOS Stack</p>
-    </div>
-  );
-}
-
-function About() {
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">About</h1>
-      <p className="text-gray-400">Express + React + Vite + Tailwind + AI Provider Integration</p>
+    <div className="loading-screen">
+      <div className="loading-text">Loading OpenWorld...</div>
     </div>
   );
 }
 
 export default function App() {
-  const [navOpen, setNavOpen] = useState(true);
-  const location = useLocation();
-
   return (
-    <div className="flex min-h-screen bg-app-bg text-white">
-      {/* Collapsible sidebar */}
-      <nav className={`${navOpen ? 'w-48' : 'w-12'} bg-app-card border-r border-app-border transition-all duration-200 flex flex-col`}>
-        <button
-          onClick={() => setNavOpen(!navOpen)}
-          className="p-3 hover:bg-app-border"
+    <div className="game-container">
+      <Suspense fallback={<LoadingScreen />}>
+        <Canvas
+          shadows
+          camera={{ fov: 60, near: 0.1, far: 1000, position: [0, 10, 20] }}
+          gl={{ antialias: true }}
         >
-          {navOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
-        <div className="flex flex-col gap-1 p-2">
-          <Link to="/" className={`flex items-center gap-2 p-2 rounded hover:bg-app-border ${location.pathname === '/' ? 'bg-app-accent/20 text-app-accent' : ''}`}>
-            <Home size={18} />
-            {navOpen && <span>Home</span>}
-          </Link>
-          <Link to="/providers" className={`flex items-center gap-2 p-2 rounded hover:bg-app-border ${location.pathname === '/providers' ? 'bg-app-accent/20 text-app-accent' : ''}`}>
-            <Brain size={18} />
-            {navOpen && <span>AI Providers</span>}
-          </Link>
-          <Link to="/about" className={`flex items-center gap-2 p-2 rounded hover:bg-app-border ${location.pathname === '/about' ? 'bg-app-accent/20 text-app-accent' : ''}`}>
-            <Info size={18} />
-            {navOpen && <span>About</span>}
-          </Link>
-        </div>
-      </nav>
-
-      {/* Main content */}
-      <main className="flex-1 overflow-auto">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/providers" element={<AIProviders />} />
-          <Route path="/about" element={<About />} />
-        </Routes>
-      </main>
+          <fog attach="fog" args={['#5b9bd5', 150, 400]} />
+          <Sky />
+          <Terrain />
+          <Water />
+          <Trees />
+          <Player />
+        </Canvas>
+      </Suspense>
+      <HUD />
     </div>
   );
 }
